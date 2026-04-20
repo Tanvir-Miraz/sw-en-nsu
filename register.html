@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCore | Register</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #eefbf6 100%);
+        overflow-x: hidden;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      }
+
+      .floating-orb {
+        position: fixed;
+        border-radius: 9999px;
+        filter: blur(18px);
+        opacity: 0.45;
+        animation: floatY 7s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .floating-orb.delay-1 {
+        animation-delay: 1s;
+      }
+
+      .floating-orb.delay-2 {
+        animation-delay: 2s;
+      }
+
+      @keyframes floatY {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-16px); }
+      }
+
+      .input-focus {
+        transition: all 0.2s ease;
+      }
+
+      .input-focus:focus {
+        transform: translateY(-1px);
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-up {
+        animation: fadeUp 0.7s ease forwards;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen text-slate-800">
+    <div class="floating-orb w-44 h-44 bg-emerald-300 top-12 left-4 md:left-20"></div>
+    <div class="floating-orb delay-1 w-36 h-36 bg-sky-300 top-32 right-6 md:right-20"></div>
+    <div class="floating-orb delay-2 w-40 h-40 bg-teal-200 bottom-10 left-10 md:left-40"></div>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const Navbar = () => {
+        const [menuOpen, setMenuOpen] = React.useState(false);
+
+        return (
+          <header className="sticky top-0 z-40 px-3 md:px-6 pt-3">
+            <nav className="glass max-w-7xl mx-auto rounded-2xl px-4 md:px-6 py-3">
+              <div className="flex items-center justify-between">
+                <a href="index.html" className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-400 rounded-2xl blur-md opacity-40"></div>
+                    <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                      M
+                    </div>
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">MediCore</h1>
+                    <p className="text-xs text-slate-500 -mt-0.5">Smart health management</p>
+                  </div>
+                </a>
+
+                <div className="hidden md:flex items-center gap-8">
+                  <a href="index.html" className="text-slate-600 hover:text-emerald-600 font-medium transition">
+                    Home
+                  </a>
+                  <a href="login.html" className="text-slate-700 hover:text-emerald-600 font-semibold transition">
+                    Login
+                  </a>
+                  <a
+                    href="register.html"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-full font-semibold shadow-lg shadow-emerald-200"
+                  >
+                    Register
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="md:hidden w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
+                  aria-label="Toggle menu"
+                >
+                  {menuOpen ? "✕" : "☰"}
+                </button>
+              </div>
+
+              {menuOpen && (
+                <div className="md:hidden mt-4 border-t border-slate-200 pt-4">
+                  <div className="flex flex-col gap-3">
+                    <a href="index.html" className="px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium">
+                      Home
+                    </a>
+                    <a href="login.html" className="px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium">
+                      Login
+                    </a>
+                    <a
+                      href="register.html"
+                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold text-center"
+                    >
+                      Register
+                    </a>
+                  </div>
+                </div>
+              )}
+            </nav>
+          </header>
+        );
+      };
+
+      const StrengthMeter = ({ password }) => {
+        const getStrength = () => {
+          if (!password) return { text: "", width: "0%", color: "bg-slate-200" };
+
+          let score = 0;
+          if (password.length >= 8) score++;
+          if (/[A-Z]/.test(password)) score++;
+          if (/[0-9]/.test(password)) score++;
+          if (/[^A-Za-z0-9]/.test(password)) score++;
+
+          if (score <= 1) return { text: "Weak", width: "25%", color: "bg-red-500" };
+          if (score === 2) return { text: "Fair", width: "50%", color: "bg-yellow-500" };
+          if (score === 3) return { text: "Good", width: "75%", color: "bg-blue-500" };
+          return { text: "Strong", width: "100%", color: "bg-emerald-500" };
+        };
+
+        const strength = getStrength();
+
+        return (
+          <div className="mt-2">
+            <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${strength.color} transition-all duration-300`}
+                style={{ width: strength.width }}
+              ></div>
+            </div>
+            <div className="mt-1 text-xs text-slate-500">
+              {strength.text && `Password strength: ${strength.text}`}
+            </div>
+          </div>
+        );
+      };
+
+      const RegisterForm = () => {
+        const [formData, setFormData] = React.useState({
+          name: "",
+          age: "",
+          height: "",
+          heightUnit: "cm",
+          weight: "",
+          bloodGroup: "",
+          gender: "",
+          phone: "",
+          email: "",
+          address: "",
+          password: "",
+          confirmPassword: "",
+          chronicDiseases: []
+        });
+
+        const [otherDisease, setOtherDisease] = React.useState("");
+        const [showPassword, setShowPassword] = React.useState(false);
+        const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+        const [isLoading, setIsLoading] = React.useState(false);
+        const [errorMessage, setErrorMessage] = React.useState("");
+        const [successMessage, setSuccessMessage] = React.useState("");
+
+        const diseaseOptions = [
+          "Diabetes",
+          "Hypertension",
+          "Asthma",
+          "Heart Disease",
+          "Kidney Disease",
+          "Thyroid",
+          "None"
+        ];
+
+        const handleInputChange = (e) => {
+          const { name, value } = e.target;
+          setFormData((prev) => ({
+            ...prev,
+            [name]: value
+          }));
+          setErrorMessage("");
+          setSuccessMessage("");
+        };
+
+        const handleCheckboxChange = (e) => {
+          const { value, checked } = e.target;
+
+          if (value === "None") {
+            setFormData((prev) => ({
+              ...prev,
+              chronicDiseases: checked ? ["None"] : []
+            }));
+            setOtherDisease("");
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              chronicDiseases: checked
+                ? [...prev.chronicDiseases.filter((d) => d !== "None"), value]
+                : prev.chronicDiseases.filter((d) => d !== value)
+            }));
+          }
+
+          setErrorMessage("");
+        };
+
+        const handleOtherDiseaseChange = (e) => {
+          const value = e.target.value;
+          setOtherDisease(value);
+
+          const filtered = formData.chronicDiseases.filter((d) => !d.startsWith("Other:"));
+
+          if (value.trim()) {
+            setFormData((prev) => ({
+              ...prev,
+              chronicDiseases: [...filtered, `Other: ${value.trim()}`]
+            }));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              chronicDiseases: filtered
+            }));
+          }
+        };
+
+        const validateForm = () => {
+          const requiredFields = [
+            "name",
+            "age",
+            "height",
+            "weight",
+            "bloodGroup",
+            "gender",
+            "phone",
+            "email",
+            "address",
+            "password",
+            "confirmPassword"
+          ];
+
+          for (const field of requiredFields) {
+            if (!String(formData[field]).trim()) {
+              return `Please fill the ${field.replace(/([A-Z])/g, " $1").toLowerCase()} field.`;
+            }
+          }
+
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            return "Please enter a valid email address.";
+          }
+
+          if (formData.password.length < 6) {
+            return "Password must be at least 6 characters long.";
+          }
+
+          if (formData.password !== formData.confirmPassword) {
+            return "Password and confirm password do not match.";
+          }
+
+          if (Number(formData.age) < 1 || Number(formData.age) > 120) {
+            return "Please enter a valid age.";
+          }
+
+          if (Number(formData.height) <= 0 || Number(formData.weight) <= 0) {
+            return "Height and weight must be greater than 0.";
+          }
+
+          if (formData.chronicDiseases.length === 0) {
+            return 'Please select at least one chronic disease option, or choose "None".';
+          }
+
+          return "";
+        };
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setErrorMessage("");
+          setSuccessMessage("");
+
+          const validationError = validateForm();
+          if (validationError) {
+            setErrorMessage(`❌ ${validationError}`);
+            return;
+          }
+
+          setIsLoading(true);
+
+          try {
+            const submitData = {
+              name: formData.name.trim(),
+              age: formData.age,
+              height: formData.height,
+              heightUnit: formData.heightUnit,
+              weight: formData.weight,
+              bloodGroup: formData.bloodGroup,
+              gender: formData.gender,
+              phone: formData.phone.trim(),
+              email: formData.email.trim().toLowerCase(),
+              address: formData.address.trim(),
+              password: formData.password,
+              chronicDiseases: formData.chronicDiseases
+            };
+
+            const response = await fetch("/api/register", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(submitData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              setSuccessMessage("✅ Registration successful. Redirecting to login...");
+              setTimeout(() => {
+                window.location.href = "login.html";
+              }, 1800);
+            } else {
+              setErrorMessage(`❌ ${result.message || "Registration failed."}`);
+            }
+          } catch (error) {
+            console.error("Registration error:", error);
+            setErrorMessage("❌ Could not connect to the server. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        return (
+          <main className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
+            <section className="fade-up">
+              <div className="glass rounded-[2rem] p-6 md:p-8">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    Create your MediCore account
+                  </div>
+
+                  <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                    Register and get
+                    <span className="block bg-gradient-to-r from-emerald-600 to-teal-500 text-transparent bg-clip-text">
+                      started today
+                    </span>
+                  </h1>
+
+                  <p className="mt-4 text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
+                    Fill in your details below. After registration, you can log in and start using the app.
+                  </p>
+                </div>
+
+                {errorMessage && (
+                  <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm font-medium">
+                    {errorMessage}
+                  </div>
+                )}
+
+                {successMessage && (
+                  <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 text-sm font-medium">
+                    {successMessage}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Enter your full name"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Age *</label>
+                      <input
+                        type="number"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleInputChange}
+                        placeholder="Enter your age"
+                        min="1"
+                        max="120"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Height *</label>
+                      <div className="flex gap-3">
+                        <input
+                          type="number"
+                          name="height"
+                          value={formData.height}
+                          onChange={handleInputChange}
+                          placeholder="Height"
+                          className="input-focus flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <select
+                          name="heightUnit"
+                          value={formData.heightUnit}
+                          onChange={handleInputChange}
+                          className="input-focus rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                        >
+                          <option value="cm">cm</option>
+                          <option value="ft">ft</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Weight (kg) *</label>
+                      <input
+                        type="number"
+                        name="weight"
+                        value={formData.weight}
+                        onChange={handleInputChange}
+                        placeholder="Enter weight"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Blood Group *</label>
+                      <select
+                        name="bloodGroup"
+                        value={formData.bloodGroup}
+                        onChange={handleInputChange}
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      >
+                        <option value="">Select blood group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Gender *</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="Enter phone number"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Email *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Enter email address"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Address *</label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Enter your address"
+                      rows="3"
+                      className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
+                    ></textarea>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Chronic Diseases *</label>
+                    <div className="rounded-2xl border border-slate-200 bg-white/70 p-4">
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {diseaseOptions.map((disease) => (
+                          <label key={disease} className="flex items-center gap-2 text-sm text-slate-700">
+                            <input
+                              type="checkbox"
+                              value={disease}
+                              checked={formData.chronicDiseases.includes(disease)}
+                              onChange={handleCheckboxChange}
+                              className="w-4 h-4 accent-emerald-500"
+                            />
+                            <span>{disease}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Other disease</label>
+                        <input
+                          type="text"
+                          value={otherDisease}
+                          onChange={handleOtherDiseaseChange}
+                          placeholder="Type if not listed"
+                          className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          placeholder="Create password"
+                          className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pr-14 outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                        >
+                          {showPassword ? "🙈" : "👁"}
+                        </button>
+                      </div>
+                      <StrengthMeter password={formData.password} />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          placeholder="Confirm password"
+                          className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pr-14 outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                        >
+                          {showConfirmPassword ? "🙈" : "👁"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full rounded-2xl px-6 py-3.5 text-white font-bold text-lg shadow-xl transition ${
+                      isLoading
+                        ? "bg-slate-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-[1.01] shadow-emerald-200"
+                    }`}
+                  >
+                    {isLoading ? "Creating Account..." : "Create Account"}
+                  </button>
+
+                  <p className="text-center text-sm text-slate-600">
+                    Already have an account?{" "}
+                    <a href="login.html" className="font-bold text-emerald-600 hover:text-emerald-700">
+                      Login here
+                    </a>
+                  </p>
+                </form>
+              </div>
+            </section>
+          </main>
+        );
+      };
+
+      const App = () => (
+        <>
+          <Navbar />
+          <RegisterForm />
+        </>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

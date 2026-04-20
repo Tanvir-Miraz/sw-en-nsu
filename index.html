@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCore | Your Personal Health Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(16, 185, 129, 0.14), transparent 28%),
+          radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #eefbf6 100%);
+        overflow-x: hidden;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow: 0 15px 45px rgba(15, 23, 42, 0.08);
+      }
+
+      .feature-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+        border-color: rgba(16, 185, 129, 0.35);
+      }
+
+      .floating-orb {
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(14px);
+        opacity: 0.55;
+        animation: floatY 6s ease-in-out infinite;
+      }
+
+      .floating-orb.delay-1 {
+        animation-delay: 1s;
+      }
+
+      .floating-orb.delay-2 {
+        animation-delay: 2s;
+      }
+
+      @keyframes floatY {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-14px);
+        }
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-up {
+        animation: fadeUp 0.8s ease forwards;
+      }
+
+      .fade-up.delay-1 {
+        animation-delay: 0.15s;
+      }
+
+      .fade-up.delay-2 {
+        animation-delay: 0.3s;
+      }
+
+      .fade-up.delay-3 {
+        animation-delay: 0.45s;
+      }
+    </style>
+  </head>
+
+  <body class="text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const Navbar = () => {
+        const [menuOpen, setMenuOpen] = React.useState(false);
+
+        return (
+          <header className="sticky top-0 z-50 px-3 md:px-6 pt-3">
+            <nav className="glass max-w-7xl mx-auto rounded-2xl px-4 md:px-6 py-3">
+              <div className="flex items-center justify-between">
+                <a href="index.html" className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-400 rounded-2xl blur-md opacity-40"></div>
+                    <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                      M
+                    </div>
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">MediCore</h1>
+                    <p className="text-xs text-slate-500 -mt-0.5">Smart health management</p>
+                  </div>
+                </a>
+
+                <div className="hidden md:flex items-center gap-8">
+                  <a href="#features" className="text-slate-600 hover:text-emerald-600 font-medium transition">
+                    Features
+                  </a>
+                  <a href="login.html" className="text-slate-700 hover:text-emerald-600 font-semibold transition">
+                    Login
+                  </a>
+                  <a
+                    href="register.html"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-full font-semibold shadow-lg shadow-emerald-200 hover:scale-105 transition"
+                  >
+                    Register
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="md:hidden w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
+                  aria-label="Toggle menu"
+                >
+                  {menuOpen ? "✕" : "☰"}
+                </button>
+              </div>
+
+              {menuOpen && (
+                <div className="md:hidden mt-4 border-t border-slate-200 pt-4">
+                  <div className="flex flex-col gap-3">
+                    <a
+                      href="#features"
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-2 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 font-medium"
+                    >
+                      Features
+                    </a>
+                    <a
+                      href="login.html"
+                      className="px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium"
+                    >
+                      Login
+                    </a>
+                    <a
+                      href="register.html"
+                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold text-center"
+                    >
+                      Create Account
+                    </a>
+                  </div>
+                </div>
+              )}
+            </nav>
+          </header>
+        );
+      };
+
+      const FloatingBackground = () => (
+        <>
+          <div className="floating-orb w-28 h-28 bg-emerald-300 top-20 left-4 md:left-24"></div>
+          <div className="floating-orb delay-1 w-24 h-24 bg-sky-300 top-40 right-10 md:right-28"></div>
+          <div className="floating-orb delay-2 w-24 h-24 bg-teal-200 bottom-24 left-10 md:left-40"></div>
+        </>
+      );
+
+      const Hero = () => (
+        <section className="relative max-w-6xl mx-auto px-4 md:px-6 pt-16 md:pt-24 pb-16 md:pb-24">
+          <FloatingBackground />
+
+          <div className="relative z-10 text-center">
+            <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm font-medium text-emerald-700 fade-up">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              Your secure digital health companion
+            </div>
+
+            <h2 className="mt-6 text-4xl md:text-6xl font-black leading-tight text-slate-900 fade-up delay-1">
+              Welcome to
+              <span className="block bg-gradient-to-r from-emerald-600 to-teal-500 text-transparent bg-clip-text">
+                MediCore
+              </span>
+            </h2>
+
+            <p className="mt-5 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed fade-up delay-2">
+              Manage your health profile, reports, and family access in one secure and easy-to-use platform.
+            </p>
+
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4 fade-up delay-3">
+              <a
+                href="register.html"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-7 py-3.5 rounded-full font-semibold text-center shadow-xl shadow-emerald-200 hover:scale-105 transition"
+              >
+                Create Account
+              </a>
+              <a
+                href="login.html"
+                className="glass px-7 py-3.5 rounded-full font-semibold text-slate-700 text-center hover:bg-white transition"
+              >
+                Login
+              </a>
+            </div>
+          </div>
+        </section>
+      );
+
+      const Features = () => {
+        const items = [
+          {
+            icon: "📄",
+            title: "Medical Report Storage",
+            text: "Keep your medical reports saved in one organized and easy-to-access place.",
+          },
+          {
+            icon: "👤",
+            title: "Personal Profile",
+            text: "Maintain your personal and health information securely from your own account.",
+          },
+          {
+            icon: "👨‍👩‍👧",
+            title: "Family Access",
+            text: "Add family members and share important health details in a controlled way.",
+          },
+          {
+            icon: "🔐",
+            title: "Secure Login",
+            text: "Use a protected login system to keep your health records safe.",
+          },
+        ];
+
+        return (
+          <section id="features" className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-14">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <div className="inline-block px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm">
+                Core Features
+              </div>
+              <h3 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
+                Simple, secure, and useful
+              </h3>
+              <p className="mt-4 text-slate-600 text-lg">
+                MediCore helps you handle important health information without making the experience complicated.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {items.map((item) => (
+                <div
+                  key={item.title}
+                  className="feature-card glass rounded-3xl p-6 border border-white/70 text-center"
+                >
+                  <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-200">
+                    {item.icon}
+                  </div>
+                  <h4 className="mt-5 text-xl font-bold text-slate-900">{item.title}</h4>
+                  <p className="mt-3 text-slate-600 leading-relaxed">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      };
+
+      const CTA = () => (
+        <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-16">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 text-white p-8 md:p-12 shadow-2xl">
+            <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -translate-y-20 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full translate-y-12 -translate-x-8"></div>
+
+            <div className="relative text-center">
+              <h3 className="text-3xl md:text-4xl font-black">Get started with MediCore</h3>
+              <p className="mt-3 text-white/90 text-lg max-w-2xl mx-auto">
+                Create your account or log in to manage your health records with confidence.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+                <a
+                  href="register.html"
+                  className="bg-white text-emerald-700 px-6 py-3 rounded-full font-bold text-center hover:scale-105 transition"
+                >
+                  Register Now
+                </a>
+                <a
+                  href="login.html"
+                  className="bg-black/15 border border-white/30 px-6 py-3 rounded-full font-bold text-center hover:bg-black/20 transition"
+                >
+                  Login
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+
+      const Footer = () => (
+        <footer className="px-4 md:px-6 pb-8 pt-2">
+          <div className="max-w-7xl mx-auto glass rounded-3xl px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-slate-600">
+            <p>© 2026 MediCore. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <a href="index.html" className="hover:text-emerald-600">Home</a>
+              <a href="login.html" className="hover:text-emerald-600">Login</a>
+              <a href="register.html" className="hover:text-emerald-600">Register</a>
+            </div>
+          </div>
+        </footer>
+      );
+
+      const App = () => (
+        <>
+          <Navbar />
+          <Hero />
+          <Features />
+          <CTA />
+          <Footer />
+        </>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

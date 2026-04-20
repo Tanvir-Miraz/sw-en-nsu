@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCore | Login</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(16, 185, 129, 0.16), transparent 28%),
+          radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #eefbf6 100%);
+        overflow-x: hidden;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      }
+
+      .floating-orb {
+        position: fixed;
+        border-radius: 9999px;
+        filter: blur(18px);
+        opacity: 0.45;
+        animation: floatY 7s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .floating-orb.delay-1 {
+        animation-delay: 1s;
+      }
+
+      .floating-orb.delay-2 {
+        animation-delay: 2s;
+      }
+
+      @keyframes floatY {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-16px); }
+      }
+
+      .input-focus {
+        transition: all 0.2s ease;
+      }
+
+      .input-focus:focus {
+        transform: translateY(-1px);
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-up {
+        animation: fadeUp 0.7s ease forwards;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen text-slate-800">
+    <div class="floating-orb w-44 h-44 bg-emerald-300 top-12 left-4 md:left-20"></div>
+    <div class="floating-orb delay-1 w-36 h-36 bg-sky-300 top-32 right-6 md:right-20"></div>
+    <div class="floating-orb delay-2 w-40 h-40 bg-teal-200 bottom-10 left-10 md:left-40"></div>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const Navbar = () => {
+        const [menuOpen, setMenuOpen] = React.useState(false);
+
+        return (
+          <header className="sticky top-0 z-40 px-3 md:px-6 pt-3">
+            <nav className="glass max-w-7xl mx-auto rounded-2xl px-4 md:px-6 py-3">
+              <div className="flex items-center justify-between">
+                <a href="index.html" className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-400 rounded-2xl blur-md opacity-40"></div>
+                    <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                      M
+                    </div>
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-900">MediCore</h1>
+                    <p className="text-xs text-slate-500 -mt-0.5">Smart health management</p>
+                  </div>
+                </a>
+
+                <div className="hidden md:flex items-center gap-8">
+                  <a href="index.html" className="text-slate-600 hover:text-emerald-600 font-medium transition">
+                    Home
+                  </a>
+                  <a
+                    href="login.html"
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-full font-semibold shadow-lg shadow-emerald-200"
+                  >
+                    Login
+                  </a>
+                  <a href="register.html" className="text-slate-700 hover:text-emerald-600 font-semibold transition">
+                    Register
+                  </a>
+                </div>
+
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="md:hidden w-11 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700"
+                  aria-label="Toggle menu"
+                >
+                  {menuOpen ? "✕" : "☰"}
+                </button>
+              </div>
+
+              {menuOpen && (
+                <div className="md:hidden mt-4 border-t border-slate-200 pt-4">
+                  <div className="flex flex-col gap-3">
+                    <a href="index.html" className="px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium">
+                      Home
+                    </a>
+                    <a
+                      href="login.html"
+                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold text-center"
+                    >
+                      Login
+                    </a>
+                    <a href="register.html" className="px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 font-medium">
+                      Register
+                    </a>
+                  </div>
+                </div>
+              )}
+            </nav>
+          </header>
+        );
+      };
+
+      const ForgotPasswordModal = ({ isOpen, onClose }) => {
+        const [email, setEmail] = React.useState("");
+        const [isLoading, setIsLoading] = React.useState(false);
+        const [message, setMessage] = React.useState("");
+        const [messageType, setMessageType] = React.useState("");
+
+        React.useEffect(() => {
+          if (!isOpen) {
+            setEmail("");
+            setMessage("");
+            setMessageType("");
+            setIsLoading(false);
+          }
+        }, [isOpen]);
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setMessage("");
+          setMessageType("");
+
+          if (!email.trim()) {
+            setMessage("Please enter your registered email address.");
+            setMessageType("error");
+            return;
+          }
+
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            setMessage("Please enter a valid email address.");
+            setMessageType("error");
+            return;
+          }
+
+          setIsLoading(true);
+
+          try {
+            const response = await fetch("/api/forgot-password", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ email: email.trim().toLowerCase() })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              let successText = result.message || "Password reset link generated successfully.";
+              if (result.resetLink) {
+                successText += ` Copy this reset link: ${result.resetLink}`;
+              }
+              setMessage(successText);
+              setMessageType("success");
+            } else {
+              setMessage(result.message || "Could not process your request.");
+              setMessageType("error");
+            }
+          } catch (error) {
+            console.error("Forgot password error:", error);
+            setMessage("Could not connect to the server. Please try again.");
+            setMessageType("error");
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        if (!isOpen) return null;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="glass w-full max-w-md rounded-[2rem] p-6 md:p-7">
+              <div className="flex items-start justify-between gap-4 mb-5">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">Forgot Password</h2>
+                  <p className="text-slate-500 mt-1 text-sm">
+                    Enter your registered email to reset your password.
+                  </p>
+                </div>
+
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {message && (
+                <div
+                  className={`mb-4 rounded-2xl px-4 py-3 text-sm font-medium break-words ${
+                    messageType === "success"
+                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border border-red-200 bg-red-50 text-red-700"
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Registered Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 rounded-2xl bg-slate-100 px-4 py-3 font-semibold text-slate-700 hover:bg-slate-200 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`flex-1 rounded-2xl px-4 py-3 font-semibold text-white transition ${
+                      isLoading
+                        ? "bg-slate-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-[1.01]"
+                    }`}
+                  >
+                    {isLoading ? "Sending..." : "Send Reset Link"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      };
+
+      const LoginForm = () => {
+        const [email, setEmail] = React.useState("");
+        const [password, setPassword] = React.useState("");
+        const [showPassword, setShowPassword] = React.useState(false);
+        const [rememberMe, setRememberMe] = React.useState(false);
+        const [isLoading, setIsLoading] = React.useState(false);
+        const [errorMessage, setErrorMessage] = React.useState("");
+        const [successMessage, setSuccessMessage] = React.useState("");
+        const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+
+        React.useEffect(() => {
+          const rememberedEmail = localStorage.getItem("medicore_remember_email");
+          if (rememberedEmail) {
+            setEmail(rememberedEmail);
+            setRememberMe(true);
+          }
+        }, []);
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setErrorMessage("");
+          setSuccessMessage("");
+
+          if (!email.trim() || !password.trim()) {
+            setErrorMessage("Please enter both email and password.");
+            return;
+          }
+
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            setErrorMessage("Please enter a valid email address.");
+            return;
+          }
+
+          setIsLoading(true);
+
+          try {
+            const response = await fetch("/api/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                email: email.trim().toLowerCase(),
+                password
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              if (rememberMe) {
+                localStorage.setItem("medicore_remember_email", email.trim().toLowerCase());
+              } else {
+                localStorage.removeItem("medicore_remember_email");
+              }
+
+              localStorage.removeItem("user");
+
+              localStorage.setItem("medicore_logged_in", "true");
+              localStorage.setItem("medicore_user_email", result.user.email);
+              localStorage.setItem("medicore_user_name", result.user.full_name);
+              localStorage.setItem("medicore_user_id", result.user.user_id);
+              localStorage.setItem("medicore_session_id", result.session_id);
+
+              setSuccessMessage("✅ Login successful. Redirecting to dashboard...");
+
+              setTimeout(() => {
+                window.location.href = "dashboard.html";
+              }, 1200);
+            } else {
+              setErrorMessage(result.message || "Invalid email or password.");
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            setErrorMessage("Could not connect to the server. Please try again.");
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        return (
+          <>
+            <main className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
+              <section className="fade-up">
+                <div className="glass rounded-[2rem] p-6 md:p-8">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      Welcome back to MediCore
+                    </div>
+
+                    <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                      Login to your
+                      <span className="block bg-gradient-to-r from-emerald-600 to-teal-500 text-transparent bg-clip-text">
+                        health dashboard
+                      </span>
+                    </h1>
+
+                    <p className="mt-4 text-slate-600 text-base md:text-lg max-w-2xl mx-auto">
+                      Enter your registered email and password to access your account, reports, and family health tools.
+                    </p>
+                  </div>
+
+                  {errorMessage && (
+                    <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm font-medium">
+                      ❌ {errorMessage}
+                    </div>
+                  )}
+
+                  {successMessage && (
+                    <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 text-sm font-medium">
+                      {successMessage}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setErrorMessage("");
+                        }}
+                        placeholder="Enter your registered email"
+                        className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            setErrorMessage("");
+                          }}
+                          placeholder="Enter your password"
+                          className="input-focus w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pr-14 outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                        >
+                          {showPassword ? "🙈" : "👁"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <label className="flex items-center gap-2 text-sm text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="w-4 h-4 accent-emerald-500"
+                        />
+                        <span>Remember my email</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotPassword(true)}
+                        className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 text-left sm:text-right"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={`w-full rounded-2xl px-6 py-3.5 text-white font-bold text-lg shadow-xl transition ${
+                        isLoading
+                          ? "bg-slate-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-[1.01] shadow-emerald-200"
+                      }`}
+                    >
+                      {isLoading ? "Logging in..." : "Login"}
+                    </button>
+
+                    <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">
+                      <p className="font-semibold text-slate-700 mb-1">New to MediCore?</p>
+                      <p>
+                        Create your account first, then use your registered email and password to log in.
+                      </p>
+                    </div>
+
+                    <p className="text-center text-sm text-slate-600">
+                      Don't have an account?{" "}
+                      <a href="register.html" className="font-bold text-emerald-600 hover:text-emerald-700">
+                        Register here
+                      </a>
+                    </p>
+                  </form>
+                </div>
+              </section>
+            </main>
+
+            <ForgotPasswordModal
+              isOpen={showForgotPassword}
+              onClose={() => setShowForgotPassword(false)}
+            />
+          </>
+        );
+      };
+
+      const App = () => (
+        <>
+          <Navbar />
+          <LoginForm />
+        </>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
