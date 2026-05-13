@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCore - Register</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body class="bg-gray-100 text-gray-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      
+      // ------------------------------------------
+      // 1. RESPONSIVE NAVBAR (Mobile Menu Added)
+      // ------------------------------------------
+      const Navbar = () => {
+        // State to control the visibility of the mobile menu
+        const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+        return (
+          <nav className="bg-white shadow-sm sticky top-0 z-10">
+            <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
+              {/* Logo/Title (Always visible) */}
+              <div className="flex items-center gap-2">
+                <span className="text-green-600 text-2xl font-bold">💚</span>
+                <h1 className="text-xl font-semibold text-gray-800">MediCore</h1>
+              </div>
+
+              {/* Desktop Menu (Hidden below md breakpoint) */}
+              <ul className="hidden md:flex gap-8 text-gray-700 font-medium">
+                <li><a href="index.html" className="hover:text-green-600">Home</a></li>
+                <li><a href="login.html" className="hover:text-green-600">Login</a></li>
+                <li><a href="register.html" className="text-green-600 font-semibold">Register</a></li>
+              </ul>
+
+              {/* Mobile Menu Button (Visible below md breakpoint) */}
+              <button
+                className="md:hidden p-2 text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {/* Hamburger icon (or X when open) */}
+                {isMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                )}
+              </button>
+            </div>
+
+            {/* Mobile Menu Links (Visible only when isMenuOpen is true and on mobile) */}
+            {isMenuOpen && (
+              <div className="md:hidden border-t border-gray-200 py-2">
+                <ul className="flex flex-col space-y-2 px-4 text-gray-700 font-medium">
+                  <li><a href="index.html" className="block p-2 hover:bg-gray-50 rounded transition-colors">Home</a></li>
+                  <li><a href="login.html" className="block p-2 hover:bg-gray-50 rounded transition-colors">Login</a></li>
+                  <li><a href="register.html" className="block p-2 text-green-600 font-semibold bg-green-50 rounded transition-colors">Register</a></li>
+                </ul>
+              </div>
+            )}
+          </nav>
+        );
+      };
+
+      const RegisterForm = () => {
+        const [formData, setFormData] = React.useState({
+          name: '',
+          age: '',
+          height: '',
+          heightUnit: 'cm',
+          weight: '',
+          bloodGroup: '',
+          gender: '',
+          phone: '',
+          email: '',
+          address: '',
+          password: '',
+          chronicDiseases: []
+        });
+
+        const [otherDisease, setOtherDisease] = React.useState('');
+        const [isLoading, setIsLoading] = React.useState(false);
+        const [errorMessage, setErrorMessage] = React.useState('');
+        const [successMessage, setSuccessMessage] = React.useState('');
+
+        const handleInputChange = (e) => {
+          const { name, value } = e.target;
+          setFormData(prev => ({
+            ...prev,
+            [name]: value
+          }));
+          if (errorMessage) setErrorMessage('');
+          if (successMessage) setSuccessMessage('');
+        };
+
+        const handleCheckboxChange = (e) => {
+          const { value, checked } = e.target;
+          
+          if (value === 'None') {
+            // If "None" is selected, clear all other diseases
+            setFormData(prev => ({
+              ...prev,
+              chronicDiseases: checked ? ['None'] : []
+            }));
+            setOtherDisease('');
+          } else {
+            // If other disease is selected, remove "None" if it exists
+            setFormData(prev => ({
+              ...prev,
+              chronicDiseases: checked 
+                ? [...prev.chronicDiseases.filter(d => d !== 'None'), value]
+                : prev.chronicDiseases.filter(disease => disease !== value)
+            }));
+          }
+          if (errorMessage) setErrorMessage('');
+        };
+
+        const handleOtherDiseaseChange = (e) => {
+          const value = e.target.value;
+          setOtherDisease(value);
+          
+          // Remove existing "Other" entry and add new one if not empty
+          const otherDiseases = formData.chronicDiseases.filter(d => !d.startsWith('Other:'));
+          if (value.trim()) {
+            setFormData(prev => ({
+              ...prev,
+              chronicDiseases: [...otherDiseases, `Other: ${value}`]
+            }));
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              chronicDiseases: otherDiseases
+            }));
+          }
+        };
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setErrorMessage('');
+          setSuccessMessage('');
+          
+          // Final check for other disease
+          let finalDiseases = [...formData.chronicDiseases];
+          if (otherDisease.trim() && !finalDiseases.some(d => d.startsWith('Other:'))) {
+            finalDiseases.push(`Other: ${otherDisease}`);
+          }
+
+          const submitData = {
+            ...formData,
+            chronicDiseases: finalDiseases
+          };
+
+          console.log('🚀 Form submitted with data:', submitData);
+          
+          // Validate required fields
+          const requiredFields = ['name', 'age', 'height', 'weight', 'bloodGroup', 'gender', 'phone', 'email', 'address', 'password'];
+          const missingFields = requiredFields.filter(field => !submitData[field].trim());
+          
+          if (missingFields.length > 0) {
+            setErrorMessage('❌ Please fill all required fields: ' + missingFields.join(', '));
+            return;
+          }
+
+          if (submitData.chronicDiseases.length === 0) {
+            setErrorMessage('❌ Please select at least one chronic disease option (select "None" if no diseases)');
+            return;
+          }
+
+          // Validate email format
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(submitData.email)) {
+            setErrorMessage('❌ Please enter a valid email address');
+            return;
+          }
+
+          // Validate password length
+          if (submitData.password.length < 6) {
+            setErrorMessage('❌ Password must be at least 6 characters long');
+            return;
+          }
+
+          setIsLoading(true);
+          
+          try {
+            const response = await fetch('http://localhost:5000/api/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(submitData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+              setSuccessMessage('✅ Registration Successful! Redirecting to login...');
+              console.log('✅ User registered successfully:', result.user);
+              
+              // Clear form
+              setFormData({
+                name: '',
+                age: '',
+                height: '',
+                heightUnit: 'cm',
+                weight: '',
+                bloodGroup: '',
+                gender: '',
+                phone: '',
+                email: '',
+                address: '',
+                password: '',
+                chronicDiseases: []
+              });
+              setOtherDisease('');
+              
+              // Redirect to login after 2 seconds
+              setTimeout(() => {
+                window.location.href = 'login.html';
+              }, 2000);
+              
+            } else {
+              setErrorMessage('❌ ' + result.message);
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            setErrorMessage('❌ Network error. Please check if server is running.');
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        const getHeightPlaceholder = () => {
+          return formData.heightUnit === 'cm' ? 'Height in cm' : 'Height in feet';
+        };
+
+        return (
+          // 2. FORM CONTAINER (Added vertical padding and responsive inner padding)
+          <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
+            <div className="bg-white shadow-lg rounded-2xl p-4 md:p-8 w-full max-w-2xl">
+              <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                Create Your Account 💚
+              </h2>
+
+              {errorMessage && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm text-center">{errorMessage}</p>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-sm text-center">{successMessage}</p>
+                </div>
+              )}
+
+              {/* Form grid: 1 column on mobile, 2 columns on medium screens and up */}
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Full Name - Required */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name *
+                  </label>
+                  <input 
+                    type="text" 
+                    name="name"
+                    placeholder="Full Name" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Age - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Age *
+                  </label>
+                  <input 
+                    type="number" 
+                    name="age"
+                    placeholder="Age" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    min="1"
+                    max="120"
+                    required
+                  />
+                </div>
+
+                {/* Height with Unit Selection - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Height *
+                  </label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="number" 
+                      name="height"
+                      placeholder={getHeightPlaceholder()}
+                      className="border p-2 rounded w-full border-green-500" 
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      step={formData.heightUnit === 'cm' ? '1' : '0.1'}
+                      required
+                    />
+                    <select 
+                      name="heightUnit"
+                      className="border p-2 rounded border-green-500"
+                      value={formData.heightUnit}
+                      onChange={handleInputChange}
+                    >
+                      <option value="cm">cm</option>
+                      <option value="ft">ft</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Weight - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Weight (kg) *
+                  </label>
+                  <input 
+                    type="number" 
+                    name="weight"
+                    placeholder="Weight in kg" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    min="1"
+                    max="300"
+                    required
+                  />
+                </div>
+
+                {/* Blood Group - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Blood Group *
+                  </label>
+                  <input 
+                    type="text" 
+                    name="bloodGroup"
+                    placeholder="e.g., O+, A-, B+" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.bloodGroup}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Gender Dropdown - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Gender *
+                  </label>
+                  <select 
+                    name="gender"
+                    className="border p-2 rounded w-full border-green-500"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Phone Number - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number *
+                  </label>
+                  <input 
+                    type="text" 
+                    name="phone"
+                    placeholder="Phone Number" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Email - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email *
+                  </label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    placeholder="Email Address" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Address - Required */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Address *
+                  </label>
+                  <input 
+                    type="text" 
+                    name="address"
+                    placeholder="Full Address" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Password - Required */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password *
+                  </label>
+                  <input 
+                    type="password" 
+                    name="password"
+                    placeholder="Password (min 6 characters)" 
+                    className="border p-2 rounded w-full border-green-500" 
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    minLength="6"
+                    required
+                  />
+                </div>
+
+                {/* Chronic Diseases - Required */}
+                <div className="md:col-span-2 mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chronic Diseases *
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    {['Diabetes', 'Hypertension', 'Heart Disease', 'Asthma', 'Kidney Disease', 'None'].map(disease => (
+                      <label key={disease} className="flex items-center">
+                        <input 
+                          type="checkbox" 
+                          value={disease}
+                          onChange={handleCheckboxChange}
+                          className="mr-2"
+                          checked={formData.chronicDiseases.includes(disease)}
+                        />
+                        {disease}
+                      </label>
+                    ))}
+                    
+                    {/* Other Disease Option */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <input 
+                        type="checkbox" 
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              chronicDiseases: [...prev.chronicDiseases.filter(d => d !== 'None')]
+                            }));
+                          } else {
+                            setOtherDisease('');
+                            setFormData(prev => ({
+                              ...prev,
+                              chronicDiseases: prev.chronicDiseases.filter(d => !d.startsWith('Other:'))
+                            }));
+                          }
+                        }}
+                        className="mr-2"
+                        checked={otherDisease.trim() !== '' || formData.chronicDiseases.some(d => d.startsWith('Other:'))}
+                      />
+                      <span className="mr-2">Other:</span>
+                      <input 
+                        type="text" 
+                        placeholder="Specify other disease" 
+                        className="border p-1 rounded flex-1"
+                        value={otherDisease}
+                        onChange={handleOtherDiseaseChange}
+                        disabled={formData.chronicDiseases.includes('None')}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">* Please select at least one option</p>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className={`md:col-span-2 ${
+                    isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                  } text-white py-3 rounded-lg font-semibold transition mt-4 text-lg flex items-center justify-center gap-2`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Registering...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
+                </button>
+              </form>
+
+              <p className="text-sm text-center text-gray-600 mt-4">
+                Already have an account? 
+                <a href="login.html" className="text-green-600 hover:underline ml-1"> Login here</a>
+              </p>
+
+              <div className="text-center mt-6">
+                <a href="index.html" className="text-gray-500 hover:underline text-sm">
+                  ← Back to Home
+                </a>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const App = () => (
+        <div>
+          <Navbar />
+          <RegisterForm />
+        </div>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

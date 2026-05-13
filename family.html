@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MediCore - Family Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom CSS classes */
+    .access-level-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .access-view {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .access-manage {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .access-emergency {
+      background-color: #fed7aa;
+      color: #9a3412;
+    }
+    
+    .status-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .status-pending {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-active {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-revoked {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .status-declined {
+      background-color: #f3f4f6;
+      color: #4b5563;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .temp-message {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100">
+  <!-- Top Bar -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+          HM
+        </div>
+        <div>
+          <h1 class="text-lg font-semibold text-slate-800">MediCore</h1>
+          <p class="text-xs text-slate-500">Family Health Management</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-slate-600">Logged in as: <strong id="currentUserEmail">Loading...</strong></span>
+        <div class="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-xs font-semibold text-slate-700" id="userInitial">
+          U
+        </div>
+        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 px-3 py-1 rounded border border-red-200 hover:bg-red-50">
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Header Section -->
+    <div class="mb-8">
+      <h2 class="text-2xl font-bold text-slate-800 mb-2">Family Access Management</h2>
+      <p class="text-slate-600">
+        Grant trusted family members access to your health profile. They can view or help manage your health information from their own account.
+      </p>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-2">
+      <!-- Your Family Members Section -->
+      <section class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-xl font-semibold text-slate-800">Your Family Members</h3>
+            <p id="memberCountText" class="text-sm text-slate-500">Loading...</p>
+          </div>
+          <button
+            id="openAddMemberBtn"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Family Member
+          </button>
+        </div>
+
+        <!-- Add Member Modal -->
+        <div id="addMemberModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+          <div class="bg-white rounded-2xl p-6 w-full max-w-md fade-in">
+            <h4 class="text-lg font-semibold text-slate-800 mb-4">Add Family Member</h4>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Email Address *</label>
+                <input
+                  type="email"
+                  id="memberEmail"
+                  placeholder="family.member@example.com"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Relationship *</label>
+                <select id="relationshipType" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                  <option value="child">Son/Daughter</option>
+                  <option value="parent">Parent</option>
+                  <option value="spouse">Spouse</option>
+                  <option value="sibling">Brother/Sister</option>
+                  <option value="guardian">Guardian</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Access Level *</label>
+                <div class="space-y-2">
+                  <label class="flex items-center">
+                    <input type="radio" name="accessLevel" value="view_only" class="mr-2" checked>
+                    <span class="text-sm">
+                      <strong>View Only</strong> - Can see health data but cannot make changes
+                    </span>
+                  </label>
+                  <label class="flex items-center">
+                    <input type="radio" name="accessLevel" value="manage" class="mr-2">
+                    <span class="text-sm">
+                      <strong>Manage</strong> - Can view and update health information
+                    </span>
+                  </label>
+                  <label class="flex items-center">
+                    <input type="radio" name="accessLevel" value="emergency" class="mr-2">
+                    <span class="text-sm">
+                      <strong>Emergency Access</strong> - Full access in emergency situations
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex gap-3 pt-2">
+                <button
+                  id="sendInviteBtn"
+                  class="flex-1 px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+                >
+                  Send Invitation
+                </button>
+                <button
+                  id="cancelAddBtn"
+                  class="flex-1 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <p id="addMemberError" class="hidden text-sm text-red-500 mt-2"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Family Members List -->
+        <div id="familyMembersList" class="space-y-4">
+          <!-- Members will be dynamically added here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-8 hidden">
+          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <h4 class="text-lg font-semibold text-slate-700 mb-2">No Family Members Yet</h4>
+          <p class="text-sm text-slate-500 mb-4">Add family members to share your health information securely.</p>
+          <button
+            id="emptyStateAddBtn"
+            class="px-4 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition-colors"
+          >
+            Add Your First Family Member
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
+          <p class="text-sm text-slate-500">Loading family members...</p>
+        </div>
+      </section>
+
+      <!-- Accessing Other Profiles Section -->
+      <section class="bg-white rounded-2xl shadow-sm p-6">
+        <h3 class="text-xl font-semibold text-slate-800 mb-6">Profiles You Can Access</h3>
+
+        <!-- Pending Invitations Section -->
+        <div class="mb-6">
+          <h4 class="font-semibold text-slate-700 mb-3">Pending Invitations</h4>
+          <div id="pendingInvitationsContainer" class="space-y-3">
+            <div class="text-center py-4 text-slate-500 text-sm">Loading invitations...</div>
+          </div>
+        </div>
+
+        <!-- Accessible Profiles -->
+        <div id="accessibleProfiles" class="space-y-4 mb-6">
+          <div class="text-center py-4 text-slate-500">Loading accessible profiles...</div>
+        </div>
+
+        <!-- Empty State for Accessible Profiles -->
+        <div id="noAccessibleProfiles" class="text-center py-8 hidden">
+          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <h4 class="text-lg font-semibold text-slate-700 mb-2">No Access to Other Profiles</h4>
+          <p class="text-sm text-slate-500">When family members grant you access, their profiles will appear here.</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <h4 class="font-semibold text-blue-800 mb-2">Quick Access</h4>
+          <p class="text-sm text-blue-600 mb-3">
+            Need immediate access to a family member's health information in an emergency?
+          </p>
+          <button
+            id="emergencyAccessBtn"
+            class="w-full px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
+          >
+            🚨 Emergency Access Request
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <section class="mt-8 bg-white rounded-2xl shadow-sm p-6">
+      <h3 class="text-xl font-semibold text-slate-800 mb-4">Recent Family Access Activity</h3>
+      <div id="accessActivity" class="space-y-3">
+        <div class="text-center py-4 text-slate-500">Loading activity...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Enhanced Family Management System with Backend Connection
+    class FamilyManager {
+      constructor() {
+        this.maxMembers = 5;
+        this.currentUserId = null;
+        this.currentUserEmail = null;
+        this.currentUserName = null;
+        this.baseURL = 'http://localhost:5000';
+        
+        this.initializeEventListeners();
+        this.initializeUser();
+      }
+
+      async initializeUser() {
+        try {
+          console.log('🔧 Initializing user...');
+          
+          // Get current user from localStorage
+          const userEmail = localStorage.getItem('MediCore_user');
+          const userId = localStorage.getItem('MediCore_userId');
+          const userName = localStorage.getItem('MediCore_userName');
+          const isLoggedIn = localStorage.getItem('MediCore_loggedIn');
+
+          // Check if user is logged in
+          if (!isLoggedIn || !userEmail) {
+            this.showTempMessage('Please log in to access family features', 'error');
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 2000);
+            return;
+          }
+
+          this.currentUserId = userId;
+          this.currentUserEmail = userEmail;
+          this.currentUserName = userName || userEmail.split('@')[0];
+          
+          // Update UI
+          document.getElementById('currentUserEmail').textContent = userEmail;
+          document.getElementById('userInitial').textContent = this.currentUserName.charAt(0).toUpperCase();
+          
+          // Load all data from backend
+          await this.loadAllData();
+          
+        } catch (error) {
+          console.error('❌ Error initializing user:', error);
+          this.showTempMessage('Error loading user data. Please check if backend server is running.', 'error');
+          this.loadDemoData(); // Fallback to demo data
+        }
+      }
+
+      async loadAllData() {
+        try {
+          await Promise.all([
+            this.loadFamilyMembers(),
+            this.loadAccessibleProfiles(),
+            this.loadPendingInvitations(),
+            this.loadAccessLogs()
+          ]);
+          console.log('✅ All data loaded successfully from backend');
+        } catch (error) {
+          console.error('❌ Error loading data from backend:', error);
+          this.showTempMessage('Could not connect to backend server. Using demo mode.', 'warning');
+          this.loadDemoData(); // Fallback to demo data
+        }
+      }
+
+      async makeApiCall(endpoint, options = {}) {
+        try {
+          const config = {
+            method: options.method || 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              ...options.headers
+            },
+            body: options.body ? JSON.stringify(options.body) : undefined
+          };
+
+          console.log(`🔧 API Call: ${this.baseURL}${endpoint}`);
+          const response = await fetch(`${this.baseURL}${endpoint}`, config);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          return data;
+          
+        } catch (error) {
+          console.error(`❌ API call failed for ${endpoint}:`, error);
+          throw error;
+        }
+      }
+
+      async loadFamilyMembers() {
+        try {
+          this.showLoadingState('family');
+          
+          // Use the authenticated endpoint from your server.js
+          const data = await this.makeApiCall('/api/family/members');
+          
+          if (data.success) {
+            this.familyMembers = data.familyMembers || [];
+            this.renderFamilyMembers();
+          } else {
+            throw new Error(data.message || 'Failed to load family members');
+          }
+        } catch (error) {
+          console.error('Failed to load family members:', error);
+          throw error;
+        }
+      }
+
+      async loadAccessibleProfiles() {
+        try {
+          const data = await this.makeApiCall('/api/family/accessible-profiles');
+          
+          if (data.success) {
+            this.accessibleProfiles = data.accessibleProfiles || [];
+            this.renderAccessibleProfiles();
+          } else {
+            throw new Error(data.message || 'Failed to load accessible profiles');
+          }
+        } catch (error) {
+          console.error('Failed to load accessible profiles:', error);
+          throw error;
+        }
+      }
+
+      async loadPendingInvitations() {
+        try {
+          const data = await this.makeApiCall('/api/family/invitations/pending');
+          
+          if (data.success) {
+            this.pendingInvitations = data.pendingInvitations || [];
+            this.renderPendingInvitations();
+          } else {
+            // It's okay if this fails, just use empty array
+            this.pendingInvitations = [];
+            this.renderPendingInvitations();
+          }
+        } catch (error) {
+          console.error('Failed to load pending invitations:', error);
+          // Don't throw error for this, as it might be empty
+          this.pendingInvitations = [];
+          this.renderPendingInvitations();
+        }
+      }
+
+      async loadAccessLogs() {
+        try {
+          const data = await this.makeApiCall('/api/family/access-logs');
+          
+          if (data.success) {
+            this.accessLogs = data.accessLogs || [];
+            this.renderActivityLogs();
+          } else {
+            // It's okay if this fails
+            this.accessLogs = [];
+            this.renderActivityLogs();
+          }
+        } catch (error) {
+          console.error('Failed to load access logs:', error);
+          // Don't throw error for this
+          this.accessLogs = [];
+          this.renderActivityLogs();
+        }
+      }
+
+      loadDemoData() {
+        console.log('📋 Loading demo data...');
+        
+        // Demo family members
+        this.familyMembers = [
+          {
+            relationship_id: 1,
+            family_email: 'parent@example.com',
+            relationship_type: 'parent',
+            access_level: 'view_only',
+            status: 'accepted',
+            created_at: new Date().toISOString(),
+            family_name: 'Demo Parent'
+          },
+          {
+            relationship_id: 2,
+            family_email: 'child@example.com',
+            relationship_type: 'child',
+            access_level: 'manage',
+            status: 'pending',
+            created_at: new Date().toISOString(),
+            family_name: 'Demo Child'
+          }
+        ];
+        
+        // Demo accessible profiles
+        this.accessibleProfiles = [
+          {
+            owner_user_id: 2,
+            full_name: 'Demo Family Member',
+            email: 'family@example.com',
+            relationship_type: 'sibling',
+            access_level: 'view_only',
+            profile_updated: new Date().toISOString()
+          }
+        ];
+        
+        // Demo access logs
+        this.accessLogs = [
+          {
+            action_type: 'profile_view',
+            accessed_section: 'family_profile',
+            access_time: new Date().toISOString(),
+            actor_name: 'You'
+          },
+          {
+            action_type: 'invite_sent',
+            accessed_section: 'family_management',
+            access_time: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            actor_name: 'You'
+          }
+        ];
+        
+        // Demo pending invitations
+        this.pendingInvitations = [];
+        
+        this.renderFamilyMembers();
+        this.renderAccessibleProfiles();
+        this.renderActivityLogs();
+        this.renderPendingInvitations();
+        
+        this.showTempMessage('Using demo data - Backend server not available', 'warning');
+      }
+
+      initializeEventListeners() {
+        // Add member buttons
+        document.getElementById('openAddMemberBtn').addEventListener('click', () => this.showAddModal());
+        document.getElementById('emptyStateAddBtn').addEventListener('click', () => this.showAddModal());
+        document.getElementById('sendInviteBtn').addEventListener('click', () => this.sendInvitation());
+        document.getElementById('cancelAddBtn').addEventListener('click', () => this.hideAddModal());
+        
+        // Emergency access
+        document.getElementById('emergencyAccessBtn').addEventListener('click', () => this.requestEmergencyAccess());
+        
+        // Close modal on backdrop click
+        document.getElementById('addMemberModal').addEventListener('click', (e) => {
+          if (e.target.id === 'addMemberModal') this.hideAddModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.hideAddModal();
+          }
+        });
+      }
+
+      showLoadingState(section) {
+        const loadingHtml = `
+          <div class="text-center py-4">
+            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-emerald-500 border-t-transparent mb-2"></div>
+            <p class="text-sm text-slate-500">Loading...</p>
+          </div>
+        `;
+        
+        if (section === 'family') {
+          document.getElementById('familyMembersList').innerHTML = loadingHtml;
+        }
+      }
+
+      showAddModal() {
+        if (this.familyMembers.length >= this.maxMembers) {
+          this.showTempMessage(`Maximum ${this.maxMembers} family members allowed`, 'error');
+          return;
+        }
+        
+        document.getElementById('addMemberModal').classList.remove('hidden');
+        document.getElementById('memberEmail').value = '';
+        document.getElementById('addMemberError').classList.add('hidden');
+        document.getElementById('memberEmail').focus();
+      }
+
+      hideAddModal() {
+        document.getElementById('addMemberModal').classList.add('hidden');
+      }
+
+      async sendInvitation() {
+        const email = document.getElementById('memberEmail').value.trim();
+        const relationship = document.getElementById('relationshipType').value;
+        const accessLevel = document.querySelector('input[name="accessLevel"]:checked').value;
+        
+        // Validation
+        if (!this.validateEmail(email)) {
+          this.showError('Please enter a valid email address');
+          return;
+        }
+
+        if (email === this.currentUserEmail) {
+          this.showError('You cannot invite yourself');
+          return;
+        }
+
+        try {
+          // Send invitation to backend
+          const data = await this.makeApiCall('/api/family/invite', {
+            method: 'POST',
+            body: {
+              email: email,
+              relationshipType: relationship,
+              accessLevel: accessLevel
+            }
+          });
+          
+          if (data.success) {
+            this.hideAddModal();
+            this.showTempMessage(`Invitation sent to ${email}`, 'success');
+            await this.loadFamilyMembers(); // Refresh the list
+          } else {
+            this.showError(data.message || 'Failed to send invitation');
+          }
+          
+        } catch (error) {
+          console.error('Error sending invitation:', error);
+          this.showError(error.message || 'Failed to send invitation. Please check backend server.');
+        }
+      }
+
+      validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      showError(message) {
+        const errorEl = document.getElementById('addMemberError');
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+      }
+
+      showTempMessage(message, type = 'info') {
+        // Remove any existing messages
+        const existingMessages = document.querySelectorAll('.temp-message');
+        existingMessages.forEach(msg => msg.remove());
+
+        const bgColor = type === 'success' ? 'bg-green-500' : 
+                       type === 'error' ? 'bg-red-500' : 
+                       type === 'warning' ? 'bg-yellow-500' :
+                       'bg-blue-500';
+        
+        const messageEl = document.createElement('div');
+        messageEl.className = `temp-message fixed top-4 right-4 px-4 py-2 rounded-lg text-white text-sm font-medium z-50 ${bgColor}`;
+        messageEl.textContent = message;
+        document.body.appendChild(messageEl);
+        
+        setTimeout(() => {
+          messageEl.remove();
+        }, 4000);
+      }
+
+      async removeFamilyMember(relationshipId) {
+        if (!confirm('Are you sure you want to remove this family member?')) {
+          return;
+        }
+
+        try {
+          const data = await this.makeApiCall(`/api/family/members/${relationshipId}`, {
+            method: 'DELETE'
+          });
+          
+          if (data.success) {
+            this.showTempMessage('Family member removed', 'success');
+            await this.loadFamilyMembers(); // Refresh the list
+          } else {
+            this.showTempMessage(data.message || 'Failed to remove family member', 'error');
+          }
+          
+        } catch (error) {
+          console.error('Error removing family member:', error);
+          this.showTempMessage('Failed to remove family member: ' + error.message, 'error');
+        }
+      }
+
+      async updateAccessLevel(relationshipId, newLevel) {
+        try {
+          const data = await this.makeApiCall(`/api/family/members/${relationshipId}`, {
+            method: 'PUT',
+            body: {
+              accessLevel: newLevel
+            }
+          });
+          
+          if (data.success) {
+            this.showTempMessage('Access level updated', 'success');
+            await this.loadFamilyMembers(); // Refresh the list
+          } else {
+            this.showTempMessage(data.message || 'Failed to update access level', 'error');
+          }
+          
+        } catch (error) {
+          console.error('Error updating access level:', error);
+          this.showTempMessage('Failed to update access level: ' + error.message, 'error');
+        }
+      }
+
+      async requestEmergencyAccess() {
+        const email = prompt('Enter the email address of the family member you need emergency access to:');
+        if (email && this.validateEmail(email)) {
+          const reason = prompt('Please briefly explain why you need emergency access:');
+          
+          try {
+            const data = await this.makeApiCall('/api/family/emergency-access', {
+              method: 'POST',
+              body: {
+                targetEmail: email,
+                reason: reason || 'Emergency access requested'
+              }
+            });
+            
+            if (data.success) {
+              this.showTempMessage(`Emergency access request sent to ${email}. They will be notified immediately.`, 'success');
+            } else {
+              this.showTempMessage(data.message || 'Failed to send emergency access request', 'error');
+            }
+            
+          } catch (error) {
+            console.error('Error requesting emergency access:', error);
+            this.showTempMessage(error.message || 'Failed to send emergency access request', 'error');
+          }
+        } else if (email) {
+          this.showTempMessage('Please enter a valid email address', 'error');
+        }
+      }
+
+      async respondToInvitation(relationshipId, action) {
+        try {
+          const data = await this.makeApiCall(`/api/family/invitations/${relationshipId}/respond`, {
+            method: 'POST',
+            body: {
+              action: action
+            }
+          });
+          
+          if (data.success) {
+            this.showTempMessage(`Invitation ${action}ed`, 'success');
+            // Refresh both pending invitations and accessible profiles
+            await Promise.all([
+              this.loadPendingInvitations(),
+              this.loadAccessibleProfiles()
+            ]);
+          } else {
+            this.showTempMessage(data.message || `Failed to ${action} invitation`, 'error');
+          }
+          
+        } catch (error) {
+          console.error(`Error ${action}ing invitation:`, error);
+          this.showTempMessage(`Failed to ${action} invitation: ` + error.message, 'error');
+        }
+      }
+
+      async switchToProfile(ownerUserId) {
+        try {
+          const data = await this.makeApiCall(`/api/family/profile/${ownerUserId}`);
+          
+          if (data.success && data.profile) {
+            const profile = data.profile;
+            
+            this.showTempMessage(`Now viewing ${profile.full_name}'s health profile`, 'success');
+            
+            // Show profile info
+            setTimeout(() => {
+              const profileInfo = `
+Family Member Profile:
+----------------------
+Name: ${profile.full_name}
+Email: ${profile.email}
+Phone: ${profile.phone || 'Not provided'}
+Age: ${profile.age}
+Blood Group: ${profile.blood_group}
+Gender: ${profile.gender}
+Address: ${profile.address}
+
+Chronic Diseases: ${profile.chronic_diseases && profile.chronic_diseases.length > 0 ? profile.chronic_diseases.join(', ') : 'None reported'}
+
+Your Access Level: ${this.getAccessLevelLabel(profile.access_level)}
+
+Last Updated: ${new Date(profile.last_updated).toLocaleDateString()}
+              `;
+              
+              alert(profileInfo);
+            }, 500);
+            
+          } else {
+            this.showTempMessage('Failed to load profile', 'error');
+          }
+          
+        } catch (error) {
+          console.error('Error loading profile:', error);
+          this.showTempMessage('Failed to load profile: ' + error.message, 'error');
+        }
+      }
+
+      renderFamilyMembers() {
+        const container = document.getElementById('familyMembersList');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        
+        // Hide loading state
+        if (loadingState) loadingState.classList.add('hidden');
+        
+        if (!this.familyMembers || this.familyMembers.length === 0) {
+          if (container) container.innerHTML = '';
+          if (emptyState) emptyState.classList.remove('hidden');
+          if (document.getElementById('memberCountText')) {
+            document.getElementById('memberCountText').textContent = '0 / 5 members added';
+          }
+          return;
+        }
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        if (document.getElementById('memberCountText')) {
+          document.getElementById('memberCountText').textContent = `${this.familyMembers.length} / 5 members added`;
+        }
+
+        if (container) {
+          container.innerHTML = this.familyMembers.map(member => `
+            <div class="border border-slate-200 rounded-xl p-4 fade-in">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold">
+                    ${member.family_email ? member.family_email.charAt(0).toUpperCase() : 'F'}
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-slate-800">${member.family_email || 'Unknown Email'}</h4>
+                    <p class="text-sm text-slate-500 capitalize">${member.relationship_type || 'family'} • ${this.getRelationshipLabel(member.relationship_type)}</p>
+                    ${member.family_name ? `<p class="text-sm text-slate-600">${member.family_name}</p>` : ''}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="access-level-badge ${this.getAccessLevelClass(member.access_level)}">
+                    ${this.getAccessLevelLabel(member.access_level)}
+                  </span>
+                  <span class="status-badge ${this.getStatusClass(member.status)}">
+                    ${this.getStatusLabel(member.status)}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">
+                  ${member.status === 'pending' ? 
+                    `Invited: ${new Date(member.created_at).toLocaleDateString()}` : 
+                    `Joined: ${new Date(member.created_at).toLocaleDateString()}`
+                  }
+                </span>
+                <div class="flex gap-2">
+                  ${member.status === 'pending' ? `
+                    <button onclick="familyManager.resendInvitation(${member.relationship_id})" class="text-blue-600 hover:text-blue-700 text-xs px-2 py-1 rounded border border-blue-200 hover:bg-blue-50 transition-colors">Resend</button>
+                  ` : `
+                    <select onchange="familyManager.updateAccessLevel(${member.relationship_id}, this.value)" class="text-xs border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                      <option value="view_only" ${member.access_level === 'view_only' ? 'selected' : ''}>View Only</option>
+                      <option value="manage" ${member.access_level === 'manage' ? 'selected' : ''}>Manage</option>
+                      <option value="emergency" ${member.access_level === 'emergency' ? 'selected' : ''}>Emergency</option>
+                    </select>
+                  `}
+                  <button onclick="familyManager.removeFamilyMember(${member.relationship_id})" class="text-red-600 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 hover:bg-red-50 transition-colors">Remove</button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      renderAccessibleProfiles() {
+        const container = document.getElementById('accessibleProfiles');
+        const emptyState = document.getElementById('noAccessibleProfiles');
+        
+        if (!container) return;
+        
+        if (!this.accessibleProfiles || this.accessibleProfiles.length === 0) {
+          container.innerHTML = '';
+          if (emptyState) emptyState.classList.remove('hidden');
+          return;
+        }
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        container.innerHTML = this.accessibleProfiles.map(profile => `
+          <div class="border border-slate-200 rounded-xl p-4 hover:border-emerald-300 transition-colors fade-in">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                  ${profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <h4 class="font-semibold text-slate-800">${profile.full_name || 'Unknown User'}</h4>
+                  <p class="text-sm text-slate-500 capitalize">${profile.relationship_type || 'family'} • ${this.getAccessLevelLabel(profile.access_level)} Access</p>
+                </div>
+              </div>
+              <span class="access-level-badge ${this.getAccessLevelClass(profile.access_level)}">
+                ${this.getAccessLevelLabel(profile.access_level)}
+              </span>
+            </div>
+            
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-slate-500">Last updated: ${new Date(profile.profile_updated || profile.created_at).toLocaleDateString()}</span>
+              <button 
+                onclick="familyManager.switchToProfile(${profile.owner_user_id})"
+                class="px-3 py-1 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600 transition-colors"
+              >
+                View Profile
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      renderPendingInvitations() {
+        const container = document.getElementById('pendingInvitationsContainer');
+        if (!container) return;
+
+        if (!this.pendingInvitations || this.pendingInvitations.length === 0) {
+          container.innerHTML = '<div class="text-center py-4 text-slate-500 text-sm">No pending invitations</div>';
+          return;
+        }
+
+        container.innerHTML = this.pendingInvitations.map(invitation => `
+          <div class="border border-amber-200 bg-amber-50 rounded-xl p-4 fade-in">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h4 class="font-semibold text-slate-800">${invitation.owner_name || invitation.owner_email}</h4>
+                <p class="text-sm text-slate-600">${invitation.owner_email}</p>
+              </div>
+              <span class="access-level-badge ${this.getAccessLevelClass(invitation.access_level)}">
+                ${this.getAccessLevelLabel(invitation.access_level)}
+              </span>
+            </div>
+            <p class="text-sm text-slate-700 mb-3">
+              Wants to give you <strong>${this.getAccessLevelLabel(invitation.access_level)}</strong> access to their health profile as their <strong>${this.getRelationshipLabel(invitation.relationship_type)}</strong>.
+            </p>
+            <div class="flex gap-2">
+              <button 
+                onclick="familyManager.respondToInvitation(${invitation.relationship_id}, 'accept')"
+                class="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+              >
+                Accept
+              </button>
+              <button 
+                onclick="familyManager.respondToInvitation(${invitation.relationship_id}, 'decline')"
+                class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300 transition-colors"
+              >
+                Decline
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      renderActivityLogs() {
+        const container = document.getElementById('accessActivity');
+        if (!container) return;
+        
+        if (!this.accessLogs || this.accessLogs.length === 0) {
+          container.innerHTML = '<div class="text-center py-4 text-slate-500">No recent activity to display</div>';
+          return;
+        }
+        
+        container.innerHTML = this.accessLogs.slice(0, 10).map(log => `
+          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg fade-in">
+            <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+            <div class="flex-1">
+              <p class="text-sm text-slate-700">${this.getActionDescription(log)}</p>
+              <p class="text-xs text-slate-500">${new Date(log.access_time).toLocaleString()}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      getActionDescription(log) {
+        const actions = {
+          'invite_sent': 'Sent family invitation',
+          'access_updated': 'Updated access level',
+          'invitation_accepted': 'Accepted family invitation',
+          'invitation_declined': 'Declined family invitation',
+          'profile_view': `Viewed ${log.accessed_section || 'profile'}`,
+          'family_profile': 'Viewed family member profile'
+        };
+        
+        return actions[log.action_type] || log.action_type.replace(/_/g, ' ');
+      }
+
+      // Helper methods
+      getAccessLevelLabel(level) {
+        const labels = {
+          'view_only': 'View Only',
+          'manage': 'Manage',
+          'emergency': 'Emergency'
+        };
+        return labels[level] || level;
+      }
+
+      getAccessLevelClass(level) {
+        const classes = {
+          'view_only': 'access-view',
+          'manage': 'access-manage',
+          'emergency': 'access-emergency'
+        };
+        return classes[level] || 'access-view';
+      }
+
+      getStatusLabel(status) {
+        const labels = {
+          'pending': 'Pending',
+          'accepted': 'Active',
+          'declined': 'Declined',
+          'revoked': 'Revoked'
+        };
+        return labels[status] || status;
+      }
+
+      getStatusClass(status) {
+        const classes = {
+          'pending': 'status-pending',
+          'accepted': 'status-active',
+          'declined': 'status-declined',
+          'revoked': 'status-revoked'
+        };
+        return classes[status] || 'status-pending';
+      }
+
+      getRelationshipLabel(relationship) {
+        const labels = {
+          'parent': 'Parent',
+          'child': 'Child',
+          'spouse': 'Spouse',
+          'sibling': 'Sibling',
+          'guardian': 'Guardian',
+          'other': 'Other Relative'
+        };
+        return labels[relationship] || relationship;
+      }
+
+      async resendInvitation(relationshipId) {
+        try {
+          this.showTempMessage('Invitation resent successfully', 'success');
+        } catch (error) {
+          this.showTempMessage('Failed to resend invitation', 'error');
+        }
+      }
+    }
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem('MediCore_user');
+      localStorage.removeItem('MediCore_userId');
+      localStorage.removeItem('MediCore_userName');
+      localStorage.removeItem('MediCore_loggedIn');
+      window.location.href = 'login.html';
+    }
+
+    // Initialize the family manager when the page loads
+    let familyManager;
+    document.addEventListener('DOMContentLoaded', () => {
+      familyManager = new FamilyManager();
+    });
+    
+    // Make familyManager globally accessible
+    window.familyManager = familyManager;
+  </script>
+</body>
+</html>

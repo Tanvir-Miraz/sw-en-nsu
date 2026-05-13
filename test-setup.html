@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MediCore Setup Test</title>
+</head>
+<body>
+    <h1>MediCore Setup Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function runTests() {
+            const results = document.getElementById('results');
+            let testResults = [];
+            
+            // Test 1: Check if backend is running
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                if (response.ok) {
+                    testResults.push('✅ Backend server is running');
+                } else {
+                    testResults.push('❌ Backend server returned error: ' + response.status);
+                }
+            } catch (error) {
+                testResults.push('❌ Backend server not accessible: ' + error.message);
+            }
+            
+            // Test 2: Check if user is logged in
+            const isLoggedIn = localStorage.getItem('MediCore_loggedIn');
+            const userEmail = localStorage.getItem('MediCore_user');
+            if (isLoggedIn && userEmail) {
+                testResults.push('✅ User is logged in: ' + userEmail);
+            } else {
+                testResults.push('❌ User not logged in');
+            }
+            
+            // Test 3: Check database connection
+            try {
+                const response = await fetch('http://localhost:5000/api/test');
+                if (response.ok) {
+                    testResults.push('✅ Database connection test passed');
+                } else {
+                    testResults.push('❌ Database test failed');
+                }
+            } catch (error) {
+                testResults.push('❌ Database test error: ' + error.message);
+            }
+            
+            // Display results
+            results.innerHTML = testResults.map(result => `<p>${result}</p>`).join('');
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

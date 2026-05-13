@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediCore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body class="bg-gray-50 text-gray-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const Navbar = () => (
+        <nav className="bg-white shadow-sm">
+          <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-green-600 text-2xl font-bold">💚</span>
+              <h1 className="text-xl font-semibold text-gray-800">MediCore</h1>
+            </div>
+            <ul className="flex gap-8 text-gray-700 font-medium">
+              <li><a href="login.html" className="hover:text-green-600">Login</a></li>
+              <li><a href="register.html" className="hover:text-green-600">Register</a></li>
+            </ul>
+          </div>
+        </nav>
+      );
+
+      const Hero = () => (
+        <section className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between py-16 px-6">
+          <div className="max-w-lg">
+            <h2 className="text-4xl font-bold text-gray-800 leading-snug mb-4">
+              Your Personal Health Companion
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Store, analyze, and manage your medical data — securely.
+            </p>
+            <a 
+              href="login.html"
+              className="bg-green-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-green-700 transition inline-block"
+            >
+              Get Started
+            </a>
+          </div>
+          <div className="mt-10 md:mt-0">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png"
+              alt="MediCore"
+              className="w-64 md:w-80"
+            />
+          </div>
+        </section>
+      );
+
+      const Features = () => (
+        <section className="w-full bg-white py-10 border-t">
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { icon: "🧠", text: "AI Insights" },
+              { icon: "⏰", text: "Health Reminders" },
+              { icon: "☁️", text: "Secure Cloud" },
+              { icon: "📅", text: "Doctor Booking" },
+            ].map((item) => (
+              <div key={item.text} className="flex flex-col items-center gap-2 text-gray-700">
+                <div className="text-3xl">{item.icon}</div>
+                <p className="font-semibold">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+
+      const App = () => (
+        <div>
+          <Navbar />
+          <Hero />
+          <Features />
+        </div>
+      );
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
